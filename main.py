@@ -1343,12 +1343,28 @@ elif menu == "Lihat Semua Data":
         display_df = display_data(filtered)
         render_summary_table(display_df)
 
-        st.download_button(
-            "Download Data",
-            data=to_csv(display_df),
-            file_name="Monitoring_Anggaran.csv",
-            mime="text/csv"
+        format_download = st.selectbox(
+            "Format Download Data",
+            ["Excel (.xlsx)", "CSV (.csv)"],
+            key="format_download_data"
         )
+
+        if format_download == "Excel (.xlsx)":
+            xlsx_export = to_xlsx(display_df)
+            if xlsx_export is not None:
+                st.download_button(
+                    "Download Data",
+                    data=xlsx_export,
+                    file_name="Monitoring_Anggaran.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+        else:
+            st.download_button(
+                "Download Data",
+                data=to_csv(display_df),
+                file_name="Monitoring_Anggaran.csv",
+                mime="text/csv"
+            )
 
         if not is_admin():
             st.info("Akun Operator hanya dapat input, upload, lihat, dan download data")
@@ -1375,49 +1391,65 @@ elif menu == "Kelola Data":
     else:
         st.caption("Admin bisa mengubah data langsung di tabel, lalu klik Simpan Perubahan.")
 
-        # Kolom "id" disembunyikan dari tampilan tapi tetap dipakai
-        # untuk mencocokkan baris mana yang diubah di Supabase.
-        editable_df = df_raw.copy()
-
-        edited_df = st.data_editor(
-            editable_df,
-            use_container_width=True,
-            hide_index=True,
-            num_rows="fixed",
-            disabled=["id", "No", "Sisa Anggaran"],
-            column_config={
-                "id": None,  # sembunyikan kolom id dari tampilan
-                "Tanggal": st.column_config.SelectboxColumn(
-                    "Tanggal", options=BULAN_LIST, required=True
-                ),
-                "No": st.column_config.NumberColumn("No"),
-                "MAK": st.column_config.TextColumn("MAK", required=True),
-                "Kegiatan": st.column_config.TextColumn("Kegiatan", required=True),
-                "Pagu": st.column_config.NumberColumn("Pagu", min_value=0, format="Rp %.0f"),
-                "Realisasi": st.column_config.NumberColumn("Realisasi", min_value=0, format="Rp %.0f"),
-                "Sisa Anggaran": st.column_config.NumberColumn("Sisa Anggaran", format="Rp %.0f"),
-            },
-            key="admin_editor"
+        kelola_unit = st.selectbox(
+            "Filter Unit (opsional)",
+            ["Semua Unit"] + UNIT_LIST,
+            key="kelola_filter_unit",
+            help="Pilih salah satu unit supaya cuma data unit itu yang muncul di tabel edit."
         )
 
-        if st.button("Simpan Perubahan", use_container_width=True):
-            edited_df = normalize_data(edited_df, keep_id=True)
-            errors = []
-            with st.spinner("Menyimpan perubahan ke Supabase..."):
-                for _, row in edited_df.iterrows():
-                    try:
-                        update_row(
-                            row["id"], row["Unit"], row["Tanggal"], row["MAK"],
-                            row["Kegiatan"], row["Pagu"], row["Realisasi"]
-                        )
-                    except Exception as exc:
-                        errors.append(f"ID {row['id']}: {exc}")
+        if kelola_unit == "Semua Unit":
+            editable_df = df_raw.copy()
+        else:
+            editable_df = df_raw[df_raw["Unit"] == kelola_unit].copy()
 
-            if errors:
-                st.error("Sebagian data gagal disimpan:\n" + "\n".join(errors))
-            else:
-                st.success("Perubahan berhasil disimpan ke Supabase")
-                st.rerun()
+        if editable_df.empty:
+            st.info(f"Belum ada data untuk unit {kelola_unit}.")
+        else:
+            # Kolom "id" disembunyikan dari tampilan tapi tetap dipakai
+            # untuk mencocokkan baris mana yang diubah di Supabase.
+            editable_df = editable_df.reset_index(drop=True)
+            editable_df["No"] = range(1, len(editable_df) + 1)
+
+            edited_df = st.data_editor(
+                editable_df,
+                use_container_width=True,
+                hide_index=True,
+                num_rows="fixed",
+                disabled=["id", "No", "Sisa Anggaran"],
+                column_config={
+                    "id": None,  # sembunyikan kolom id dari tampilan
+                    "Tanggal": st.column_config.SelectboxColumn(
+                        "Tanggal", options=BULAN_LIST, required=True
+                    ),
+                    "No": st.column_config.NumberColumn("No"),
+                    "MAK": st.column_config.TextColumn("MAK", required=True),
+                    "Kegiatan": st.column_config.TextColumn("Kegiatan", required=True),
+                    "Pagu": st.column_config.NumberColumn("Pagu", min_value=0, format="Rp %.0f"),
+                    "Realisasi": st.column_config.NumberColumn("Realisasi", min_value=0, format="Rp %.0f"),
+                    "Sisa Anggaran": st.column_config.NumberColumn("Sisa Anggaran", format="Rp %.0f"),
+                },
+                key="admin_editor"
+            )
+
+            if st.button("Simpan Perubahan", use_container_width=True):
+                edited_df = normalize_data(edited_df, keep_id=True)
+                errors = []
+                with st.spinner("Menyimpan perubahan ke Supabase..."):
+                    for _, row in edited_df.iterrows():
+                        try:
+                            update_row(
+                                row["id"], row["Unit"], row["Tanggal"], row["MAK"],
+                                row["Kegiatan"], row["Pagu"], row["Realisasi"]
+                            )
+                        except Exception as exc:
+                            errors.append(f"ID {row['id']}: {exc}")
+
+                if errors:
+                    st.error("Sebagian data gagal disimpan:\n" + "\n".join(errors))
+                else:
+                    st.success("Perubahan berhasil disimpan ke Supabase")
+                    st.rerun()
 
         st.divider()
         st.subheader("Hapus Data")
