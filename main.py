@@ -51,6 +51,15 @@ st.markdown("""
     font-weight: 600 !important;
     font-size: 15px;
 }
+/* Kotak form (st.form) -- bawaan Streamlit -- dikasih tint biru muda
+   supaya nggak nyaru sama background halaman yang terang. */
+[data-testid="stForm"] {
+    background: #eaf3fc !important;
+    border: 2px solid #a9c8ea !important;
+    border-radius: 22px !important;
+    padding: 28px !important;
+}
+
 .card {
     background: #ffffff;
     border-radius: 26px;
@@ -76,8 +85,10 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
     border: 1.5px solid #a9c8ea !important;
 }
 .stSelectbox div[data-baseweb="select"],
-.stMultiSelect div[data-baseweb="select"] {
-    background: #f8fafc !important;
+.stMultiSelect div[data-baseweb="select"],
+.stSelectbox div[data-baseweb="select"] > div,
+.stMultiSelect div[data-baseweb="select"] > div {
+    background-color: #ffffff !important;
     border-radius: 14px !important;
     color: #1e293b !important;
     border: 1.5px solid #a9c8ea !important;
