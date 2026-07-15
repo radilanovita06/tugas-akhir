@@ -369,6 +369,33 @@ def normalize_data(df: pd.DataFrame, keep_id: bool = False) -> pd.DataFrame:
     return df
 
 
+def get_latest_snapshot(df: pd.DataFrame) -> pd.DataFrame:
+    """Pagu dan Realisasi yang diupload tiap bulan sifatnya SNAPSHOT:
+    Pagu = plafon anggaran terkini (bisa berubah karena revisi/operan
+    antar kegiatan), Realisasi = akumulasi realisasi SAMPAI DENGAN bulan
+    tersebut (bukan realisasi khusus bulan itu saja). Karena keduanya
+    snapshot, keduanya TIDAK BOLEH dijumlah lintas bulan untuk kegiatan
+    yang sama, atau angkanya akan dobel/berlipat.
+
+    Fungsi ini mengambil SATU baris per kegiatan (Unit+MAK), yaitu entri
+    dari bulan PALING AKHIR yang tersedia pada rentang data/filter yang
+    dipilih, supaya total Pagu maupun Realisasi mencerminkan kondisi
+    terkini kegiatan tersebut, bukan hasil penjumlahan berulang."""
+    if df.empty:
+        return pd.DataFrame(columns=["Unit", "MAK", "Kegiatan", "Tanggal", "Pagu", "Realisasi"])
+
+    temp = df.copy()
+    temp["Urutan Bulan"] = temp["Tanggal"].apply(
+        lambda x: BULAN_LIST.index(x) if x in BULAN_LIST else -1
+    )
+    temp = temp.sort_values("Urutan Bulan")
+    return (
+        temp.drop_duplicates(subset=["Unit", "MAK"], keep="last")
+        [["Unit", "MAK", "Kegiatan", "Tanggal", "Pagu", "Realisasi"]]
+        .reset_index(drop=True)
+    )
+
+
 def display_data(df: pd.DataFrame) -> pd.DataFrame:
     result = normalize_data(df)
     for col in ["Pagu", "Realisasi", "Sisa Anggaran"]:
@@ -415,6 +442,8 @@ def fetch_data() -> pd.DataFrame:
 
 
 def insert_row(unit, tanggal, mak, kegiatan, pagu, realisasi):
+    """Upsert satu baris: kalau Unit+Tanggal+MAK sudah ada, nilainya DIGANTI
+    dengan angka baru (bukan dijumlahkan). Kalau belum ada, jadi baris baru."""
     payload = {
         "unit": unit,
         "tanggal": tanggal,
@@ -423,13 +452,21 @@ def insert_row(unit, tanggal, mak, kegiatan, pagu, realisasi):
         "pagu": float(pagu),
         "realisasi": float(realisasi),
     }
-    supabase.table(TABLE_NAME).insert(payload).execute()
+    supabase.table(TABLE_NAME).upsert(
+        payload, on_conflict="unit,tanggal,mak"
+    ).execute()
 
 
 def insert_bulk(df: pd.DataFrame):
+    """Upsert banyak baris sekaligus (dipakai saat Upload Template).
+    Baris dengan Unit+Tanggal+MAK yang sama dengan data lama akan
+    DIGANTI nilainya (Pagu/Realisasi jadi angka terbaru dari file),
+    bukan ditambahkan sebagai baris baru sehingga tidak dobel hitung."""
     records = df.rename(columns=DB_COLUMN_MAP)[list(DB_COLUMN_MAP.values())].to_dict("records")
     if records:
-        supabase.table(TABLE_NAME).insert(records).execute()
+        supabase.table(TABLE_NAME).upsert(
+            records, on_conflict="unit,tanggal,mak"
+        ).execute()
 
 
 def update_row(row_id, unit, tanggal, mak, kegiatan, pagu, realisasi):
@@ -679,9 +716,14 @@ elif menu == "Lihat Semua Data":
                 filtered["Kegiatan"].str.contains(search_kegiatan, case=False, na=False)
             ]
 
-        total_pagu = filtered["Pagu"].sum()
-        total_realisasi = filtered["Realisasi"].sum()
-        total_sisa = filtered["Sisa Anggaran"].sum()
+        # Pagu maupun Realisasi diambil dari snapshot bulan PALING AKHIR
+        # per kegiatan (Unit+MAK), bukan dijumlah lintas bulan — karena
+        # keduanya angka "posisi terkini/kumulatif", bukan nilai per bulan
+        # yang berdiri sendiri.
+        latest_snapshot = get_latest_snapshot(filtered)
+        total_pagu = latest_snapshot["Pagu"].sum()
+        total_realisasi = latest_snapshot["Realisasi"].sum()
+        total_sisa = total_pagu - total_realisasi
         serapan = (total_realisasi / total_pagu * 100) if total_pagu > 0 else 0
 
         c1, c2, c3, c4 = st.columns(4)
@@ -702,6 +744,12 @@ elif menu == "Lihat Semua Data":
 
         st.divider()
 
+        # Di dalam SATU bulan, menjumlahkan Pagu/Realisasi antar KEGIATAN
+        # yang berbeda tetap valid (bukan dobel hitung) — karena tiap
+        # kegiatan cuma muncul sekali untuk bulan itu. Realisasi di baris
+        # tersebut memang sudah kumulatif sampai dengan bulan itu, jadi
+        # hasil penjumlahannya otomatis sudah jadi "total realisasi
+        # organisasi s.d. bulan tersebut", tanpa perlu trik tambahan.
         month_summary = (
             filtered.groupby("Tanggal", as_index=False)[["Pagu", "Realisasi", "Sisa Anggaran"]]
             .sum()
@@ -786,7 +834,7 @@ elif menu == "Lihat Semua Data":
                             alt.Tooltip("Nilai Rupiah:N", title="Nilai")
                         ]
                     )
-                    .properties(height=330, title="Pagu vs Realisasi per Bulan")
+                    .properties(height=330, title="Pagu vs Realisasi (Posisi s.d. Bulan Berjalan)")
                 )
                 st.altair_chart(
                     grouped_bar.configure_title(color="#f1f5f9", fontSize=17, anchor="start")
@@ -871,10 +919,15 @@ elif menu == "Lihat Semua Data":
 
             st.subheader("Visualisasi per Unit")
 
+            # Pagu maupun Realisasi per unit dijumlah dari snapshot TERBARU
+            # tiap kegiatan (Unit+MAK) yang sudah di-dedupe lewat
+            # get_latest_snapshot (variabel latest_snapshot sudah dihitung
+            # di atas), supaya tidak dobel saat data mencakup banyak bulan.
             unit_summary = (
-                filtered.groupby("Unit", as_index=False)[["Pagu", "Realisasi", "Sisa Anggaran"]]
+                latest_snapshot.groupby("Unit", as_index=False)[["Pagu", "Realisasi"]]
                 .sum()
             )
+            unit_summary["Sisa Anggaran"] = unit_summary["Pagu"] - unit_summary["Realisasi"]
             unit_summary["Serapan"] = unit_summary.apply(
                 lambda row: (row["Realisasi"] / row["Pagu"] * 100) if row["Pagu"] > 0 else 0,
                 axis=1
