@@ -864,8 +864,8 @@ elif menu == "Lihat Semua Data":
                     .properties(height=330, title="Tren Realisasi per Bulan")
                 )
                 st.altair_chart(
-                    area.configure_title(color="#f1f5f9", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#dbeafe", titleColor="#dbeafe", gridColor="#35506f")
+                    area.configure_title(color="#0f172a", fontSize=17, anchor="start")
+                        .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
                         .configure_view(strokeWidth=0),
                     use_container_width=True
                 )
@@ -901,9 +901,9 @@ elif menu == "Lihat Semua Data":
                     .properties(height=330, title="Pagu vs Realisasi (Posisi s.d. Bulan Berjalan)")
                 )
                 st.altair_chart(
-                    grouped_bar.configure_title(color="#f1f5f9", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#dbeafe", titleColor="#dbeafe", gridColor="#35506f")
-                        .configure_legend(labelColor="#f1f5f9")
+                    grouped_bar.configure_title(color="#0f172a", fontSize=17, anchor="start")
+                        .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
+                        .configure_legend(labelColor="#334155")
                         .configure_view(strokeWidth=0),
                     use_container_width=True
                 )
@@ -936,8 +936,8 @@ elif menu == "Lihat Semua Data":
                 ).encode(x="target:Q")
                 st.altair_chart(
                     (serapan_chart + target_line)
-                    .configure_title(color="#f1f5f9", fontSize=17, anchor="start")
-                    .configure_axis(labelColor="#dbeafe", titleColor="#dbeafe", gridColor="#35506f")
+                    .configure_title(color="#0f172a", fontSize=17, anchor="start")
+                    .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
                     .configure_view(strokeWidth=0),
                     use_container_width=True
                 )
@@ -969,13 +969,13 @@ elif menu == "Lihat Semua Data":
                 )
                 center_text = (
                     alt.Chart(pd.DataFrame({"label": [f"{serapan:.1f}%"]}))
-                    .mark_text(fontSize=28, fontWeight="bold", color="#F8FAFC")
+                    .mark_text(fontSize=28, fontWeight="bold", color="#0f172a")
                     .encode(text="label:N")
                 )
                 st.altair_chart(
                     (donut + center_text)
-                    .configure_title(color="#f1f5f9", fontSize=17, anchor="start")
-                    .configure_legend(labelColor="#f1f5f9")
+                    .configure_title(color="#0f172a", fontSize=17, anchor="start")
+                    .configure_legend(labelColor="#334155")
                     .configure_view(strokeWidth=0),
                     use_container_width=True
                 )
@@ -1026,8 +1026,8 @@ elif menu == "Lihat Semua Data":
                         .properties(height=340, title="Realisasi Anggaran per Unit")
                     )
                     st.altair_chart(
-                        unit_realization.configure_title(color="#f1f5f9", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#dbeafe", titleColor="#dbeafe", gridColor="#35506f")
+                        unit_realization.configure_title(color="#0f172a", fontSize=17, anchor="start")
+                        .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
                         .configure_view(strokeWidth=0),
                         use_container_width=True
                     )
@@ -1063,9 +1063,9 @@ elif menu == "Lihat Semua Data":
                         .properties(height=340, title="Pagu vs Realisasi per Unit")
                     )
                     st.altair_chart(
-                        unit_compare.configure_title(color="#f1f5f9", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#dbeafe", titleColor="#dbeafe", gridColor="#35506f")
-                        .configure_legend(labelColor="#f1f5f9")
+                        unit_compare.configure_title(color="#0f172a", fontSize=17, anchor="start")
+                        .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
+                        .configure_legend(labelColor="#334155")
                         .configure_view(strokeWidth=0),
                         use_container_width=True
                     )
@@ -1102,8 +1102,8 @@ elif menu == "Lihat Semua Data":
                     ).encode(x="target:Q")
                     st.altair_chart(
                         (unit_absorption + target_unit)
-                        .configure_title(color="#f1f5f9", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#dbeafe", titleColor="#dbeafe", gridColor="#35506f")
+                        .configure_title(color="#0f172a", fontSize=17, anchor="start")
+                        .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
                         .configure_view(strokeWidth=0),
                         use_container_width=True
                     )
@@ -1128,8 +1128,8 @@ elif menu == "Lihat Semua Data":
                         .properties(height=340, title="Kontribusi Realisasi per Unit")
                     )
                     st.altair_chart(
-                        unit_donut.configure_title(color="#f1f5f9", fontSize=17, anchor="start")
-                        .configure_legend(labelColor="#f1f5f9", columns=2)
+                        unit_donut.configure_title(color="#0f172a", fontSize=17, anchor="start")
+                        .configure_legend(labelColor="#334155", columns=2)
                         .configure_view(strokeWidth=0),
                         use_container_width=True
                     )
