@@ -23,6 +23,7 @@ st.markdown("""
     border-right: 3px solid #C8A951;
 }
 [data-testid="stSidebar"] * { color: #ffffff !important; }
+[data-testid="stSidebar"] .user-name { color: #ffffff !important; }
 [data-testid="stSidebar"] .user-role { color: #cfe0f5 !important; }
 [data-testid="stSidebar"] .user-card {
     background: rgba(255,255,255,.08) !important;
@@ -129,6 +130,13 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
 [data-testid="stSidebar"] .stButton button {
     background: linear-gradient(135deg, #dc2626, #ef4444) !important;
     color: #ffffff !important;
+}
+/* Tombol Refresh Data = BIRU (bukan hijau, biar beda dari aksi simpan) */
+.st-key-refresh_btn_lihat_semua .stButton button,
+.st-key-refresh_btn_kelola_data .stButton button {
+    background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 18px rgba(37,99,235,.25);
 }
 .metric-card {
     background: #ffffff;
@@ -622,8 +630,8 @@ if st.sidebar.button("Logout", use_container_width=True):
 
 st.markdown("""
 <div class="gov-header">
-    <h1>🏛️ Sistem Informasi Realisasi Anggaran (SIRA)</h1>
-    <p>Monitoring Pagu, Realisasi, dan Sisa Anggaran</p>
+    <h1 style="color:#ffffff !important;">🏛️ Sistem Informasi Realisasi Anggaran (SIRA)</h1>
+    <p style="color:#e8f1fd !important;">Monitoring Pagu, Realisasi, dan Sisa Anggaran</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -749,8 +757,9 @@ elif menu == "Upload Template":
 elif menu == "Lihat Semua Data":
     st.subheader("Monitoring Data Anggaran")
 
-    if st.button("🔄 Refresh Data"):
-        st.rerun()
+    with st.container(key="refresh_btn_lihat_semua"):
+        if st.button("🔄 Refresh Data"):
+            st.rerun()
 
     df_raw = fetch_data()
 
@@ -773,9 +782,9 @@ elif menu == "Lihat Semua Data":
                 default=[m for m in BULAN_LIST if m in df["Tanggal"].unique()]
             )
         with filter2:
-            search_mak = st.text_input("Cari MAK")
+            search_mak = st.text_input("Cari MAK", placeholder="Cari kode MAK...")
         with filter3:
-            search_kegiatan = st.text_input("Cari Kegiatan")
+            search_kegiatan = st.text_input("Cari Kegiatan", placeholder="Cari nama kegiatan...")
 
         filtered = df.copy()
         if selected_units:
@@ -1182,8 +1191,9 @@ elif menu == "Kelola Data":
 
     st.subheader("Kelola Data")
 
-    if st.button("🔄 Refresh Data"):
-        st.rerun()
+    with st.container(key="refresh_btn_kelola_data"):
+        if st.button("🔄 Refresh Data"):
+            st.rerun()
 
     df_raw = fetch_data()
 
