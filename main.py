@@ -37,14 +37,15 @@ st.markdown("""
     box-shadow: 0 20px 40px rgba(15,23,42,.15);
     margin-bottom: 30px;
 }
-.gov-header h1 {
+.gov-header-title {
     color: #ffffff !important;
     font-size: 34px;
     font-weight: 800 !important;
     margin: 0;
     letter-spacing: .2px;
+    line-height: 1.3;
 }
-.gov-header p {
+.gov-header-sub {
     color: #e8f1fd !important;
     margin-top: 10px;
     font-weight: 600 !important;
@@ -630,8 +631,8 @@ if st.sidebar.button("Logout", use_container_width=True):
 
 st.markdown("""
 <div class="gov-header">
-    <h1 style="color:#ffffff !important;">🏛️ Sistem Informasi Realisasi Anggaran (SIRA)</h1>
-    <p style="color:#e8f1fd !important;">Monitoring Pagu, Realisasi, dan Sisa Anggaran</p>
+    <div class="gov-header-title" style="color:#ffffff !important;">🏛️ Sistem Informasi Realisasi Anggaran (SIRA)</div>
+    <div class="gov-header-sub" style="color:#e8f1fd !important;">Monitoring Pagu, Realisasi, dan Sisa Anggaran</div>
 </div>
 """, unsafe_allow_html=True)
 
