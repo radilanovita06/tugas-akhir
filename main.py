@@ -202,6 +202,17 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
     overflow: hidden;
     border: 1.5px solid #bcd9f4;
 }
+/* Header kolom tabel (Ringkasan per Unit, Ringkasan Bulanan, dsb)
+   dikasih warna navy sama seperti sidebar, teks putih. */
+[data-testid="stDataFrame"] thead tr th,
+[data-testid="stDataFrame"] [role="columnheader"] {
+    background-color: #0f2d52 !important;
+    color: #ffffff !important;
+}
+[data-testid="stDataFrame"] thead tr th *,
+[data-testid="stDataFrame"] [role="columnheader"] * {
+    color: #ffffff !important;
+}
 .login-wrap { max-width: 460px; margin: 7vh auto 0 auto; }
 .login-logo {
     width: 72px; height: 72px; margin: 0 auto 18px auto;
@@ -285,6 +296,29 @@ USERS = {
 }
 
 UNIT_LIST = ["Sekretariat", "IHHP", "IMHLP", "MINTEMGAR", "IKOP", "DIREKTIF"]
+
+# Warna tetap per Unit -- dipakai KONSISTEN di semua grafik supaya
+# satu unit selalu punya warna yang sama di mana pun ditampilkan.
+# Palet dipilih supaya masih senada dengan tema biru-navy-emas situs,
+# tapi tetap kontras/beda satu sama lain.
+UNIT_COLORS = {
+    "Sekretariat": "#16a34a",   # hijau
+    "IHHP": "#1d4d80",          # navy
+    "IMHLP": "#C8A951",         # emas
+    "MINTEMGAR": "#0891b2",     # teal
+    "IKOP": "#7c3aed",          # ungu
+    "DIREKTIF": "#dc2626",      # merah
+}
+UNIT_COLOR_RANGE = [UNIT_COLORS[u] for u in UNIT_LIST]
+
+
+def chart_header(title: str):
+    """Judul grafik ditampilkan di LUAR gambar chart (bukan title bawaan
+    Altair), supaya gayanya konsisten dengan header lain di halaman ini."""
+    st.markdown(
+        f'<div style="font-weight:700;font-size:16px;color:#0f2d52;margin-bottom:6px;">{title}</div>',
+        unsafe_allow_html=True
+    )
 
 BULAN_LIST = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -960,11 +994,11 @@ elif menu == "Lihat Semua Data":
                             alt.Tooltip("Realisasi Rupiah:N", title="Realisasi")
                         ]
                     )
-                    .properties(height=330, title="Tren Realisasi per Bulan")
+                    .properties(height=330)
                 )
+                chart_header("Tren Realisasi per Bulan")
                 st.altair_chart(
-                    area.configure_title(color="#0f2d52", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
+                    area.configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
                         .configure_view(strokeWidth=0),
                     use_container_width=True
                 )
@@ -995,24 +1029,24 @@ elif menu == "Lihat Semua Data":
                             alt.Tooltip("Nilai Rupiah:N", title="Nilai")
                         ]
                     )
-                    .properties(height=330, title="Pagu vs Realisasi (Posisi s.d. Bulan Berjalan)")
+                    .properties(height=330)
                 )
+                chart_header("Pagu vs Realisasi (Posisi s.d. Bulan Berjalan)")
                 st.altair_chart(
-                    grouped_bar.configure_title(color="#0f2d52", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
+                    grouped_bar.configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
                         .configure_legend(labelColor="#375073")
                         .configure_view(strokeWidth=0),
                     use_container_width=True
                 )
 
-            g3, g4 = st.columns([1.35, 1])
+            g3, g4 = st.columns(2)
 
             with g3:
                 serapan_chart = (
                     alt.Chart(month_summary)
                     .mark_bar(cornerRadiusEnd=7)
                     .encode(
-                        y=alt.Y("Tanggal:N", sort=BULAN_LIST, title=None),
+                        y=alt.Y("Tanggal:N", sort=BULAN_LIST, title=None, axis=alt.Axis(labelOverlap=False)),
                         x=alt.X("Serapan:Q", title="Persentase Serapan", scale=alt.Scale(domain=[0, max(100, float(month_summary["Serapan"].max()) + 5)])),
                         color=alt.Color(
                             "Serapan:Q",
@@ -1024,14 +1058,14 @@ elif menu == "Lihat Semua Data":
                             alt.Tooltip("Serapan:Q", title="Serapan", format=".2f")
                         ]
                     )
-                    .properties(height=330, title="Persentase Serapan per Bulan")
+                    .properties(height=420)
                 )
                 target_line = alt.Chart(pd.DataFrame({"target": [100]})).mark_rule(
                     color="#F87171", strokeDash=[6, 5], strokeWidth=2
                 ).encode(x="target:Q")
+                chart_header("Persentase Serapan per Bulan")
                 st.altair_chart(
                     (serapan_chart + target_line)
-                    .configure_title(color="#0f2d52", fontSize=17, anchor="start")
                     .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
                     .configure_view(strokeWidth=0),
                     use_container_width=True
@@ -1058,16 +1092,16 @@ elif menu == "Lihat Semua Data":
                             alt.Tooltip("Nilai Rupiah:N", title="Nilai")
                         ]
                     )
-                    .properties(height=330, title="Komposisi Anggaran")
+                    .properties(height=420)
                 )
                 center_text = (
                     alt.Chart(pd.DataFrame({"label": [f"{serapan:.1f}%"]}))
                     .mark_text(fontSize=28, fontWeight="bold", color="#0f172a")
                     .encode(text="label:N")
                 )
+                chart_header("Komposisi Anggaran")
                 st.altair_chart(
                     (donut + center_text)
-                    .configure_title(color="#0f2d52", fontSize=17, anchor="start")
                     .configure_legend(labelColor="#375073")
                     .configure_view(strokeWidth=0),
                     use_container_width=True
@@ -1105,8 +1139,8 @@ elif menu == "Lihat Semua Data":
                             y=alt.Y("Unit:N", sort="-x", title=None),
                             x=alt.X("Realisasi:Q", title="Realisasi", axis=rupiah_axis("Realisasi")),
                             color=alt.Color(
-                                "Realisasi:Q",
-                                scale=alt.Scale(range=["#315B83", "#E8C96A"]),
+                                "Unit:N",
+                                scale=alt.Scale(domain=UNIT_LIST, range=UNIT_COLOR_RANGE),
                                 legend=None
                             ),
                             tooltip=[
@@ -1114,10 +1148,11 @@ elif menu == "Lihat Semua Data":
                                 alt.Tooltip("Realisasi Rupiah:N", title="Realisasi")
                             ]
                         )
-                        .properties(height=340, title="Realisasi Anggaran per Unit")
+                        .properties(height=340)
                     )
+                    chart_header("Realisasi Anggaran per Unit")
                     st.altair_chart(
-                        unit_realization.configure_title(color="#0f2d52", fontSize=17, anchor="start")
+                        unit_realization
                         .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
                         .configure_view(strokeWidth=0),
                         use_container_width=True
@@ -1149,17 +1184,18 @@ elif menu == "Lihat Semua Data":
                                 alt.Tooltip("Nilai Rupiah:N", title="Nilai")
                             ]
                         )
-                        .properties(height=340, title="Pagu vs Realisasi per Unit")
+                        .properties(height=340)
                     )
+                    chart_header("Pagu vs Realisasi per Unit")
                     st.altair_chart(
-                        unit_compare.configure_title(color="#0f2d52", fontSize=17, anchor="start")
+                        unit_compare
                         .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
                         .configure_legend(labelColor="#375073")
                         .configure_view(strokeWidth=0),
                         use_container_width=True
                     )
 
-                u3, u4 = st.columns([1.3, 1])
+                u3, u4 = st.columns(2)
 
                 with u3:
                     unit_absorption = (
@@ -1173,8 +1209,8 @@ elif menu == "Lihat Semua Data":
                                 scale=alt.Scale(domain=[0, max(100, float(unit_summary["Serapan"].max()) + 5)])
                             ),
                             color=alt.Color(
-                                "Serapan:Q",
-                                scale=alt.Scale(domain=[0, 100], range=["#315B83", "#E8C96A"]),
+                                "Unit:N",
+                                scale=alt.Scale(domain=UNIT_LIST, range=UNIT_COLOR_RANGE),
                                 legend=None
                             ),
                             tooltip=[
@@ -1182,14 +1218,14 @@ elif menu == "Lihat Semua Data":
                                 alt.Tooltip("Serapan:Q", title="Serapan", format=".2f")
                             ]
                         )
-                        .properties(height=340, title="Persentase Serapan per Unit")
+                        .properties(height=340)
                     )
                     target_unit = alt.Chart(pd.DataFrame({"target": [100]})).mark_rule(
                         color="#F87171", strokeDash=[6, 5], strokeWidth=2
                     ).encode(x="target:Q")
+                    chart_header("Persentase Serapan per Unit")
                     st.altair_chart(
                         (unit_absorption + target_unit)
-                        .configure_title(color="#0f2d52", fontSize=17, anchor="start")
                         .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
                         .configure_view(strokeWidth=0),
                         use_container_width=True
@@ -1204,16 +1240,21 @@ elif menu == "Lihat Semua Data":
                         .mark_arc(innerRadius=68, outerRadius=112, cornerRadius=7)
                         .encode(
                             theta=alt.Theta("Realisasi:Q"),
-                            color=alt.Color("Unit:N", legend=alt.Legend(title=None, orient="bottom")),
+                            color=alt.Color(
+                                "Unit:N",
+                                scale=alt.Scale(domain=UNIT_LIST, range=UNIT_COLOR_RANGE),
+                                legend=alt.Legend(title=None, orient="bottom")
+                            ),
                             tooltip=[
                                 alt.Tooltip("Unit:N", title="Unit"),
                                 alt.Tooltip("Realisasi Rupiah:N", title="Realisasi")
                             ]
                         )
-                        .properties(height=340, title="Kontribusi Realisasi per Unit")
+                        .properties(height=340)
                     )
+                    chart_header("Kontribusi Realisasi per Unit")
                     st.altair_chart(
-                        unit_donut.configure_title(color="#0f2d52", fontSize=17, anchor="start")
+                        unit_donut
                         .configure_legend(labelColor="#375073", columns=2)
                         .configure_view(strokeWidth=0),
                         use_container_width=True
