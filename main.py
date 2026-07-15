@@ -617,6 +617,7 @@ st.sidebar.markdown(f"""
 """, unsafe_allow_html=True)
 
 menu_items = [
+    "Dashboard",
     "Input Data",
     "Upload Template",
     "Lihat Semua Data"
@@ -637,9 +638,55 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================
+# DASHBOARD - HALAMAN AWAL SETELAH LOGIN
+# =========================================================
+if menu == "Dashboard":
+    st.subheader(f"Selamat datang, {current_user['name']} 👋")
+    st.caption("Ringkasan kondisi anggaran terkini di seluruh unit.")
+
+    df_dashboard = fetch_data()
+
+    if df_dashboard.empty:
+        st.info("Belum ada data anggaran. Silakan input atau upload data terlebih dahulu.")
+    else:
+        # Ringkasan dashboard dihitung dari SELURUH data (semua unit,
+        # tanpa filter), menggunakan snapshot bulan terakhir per
+        # kegiatan -- sama seperti logika di halaman Lihat Semua Data.
+        dash_snapshot = get_latest_snapshot(df_dashboard)
+        dash_total_pagu = dash_snapshot["Pagu"].sum()
+        dash_total_realisasi = dash_snapshot["Realisasi"].sum()
+        dash_total_sisa = dash_total_pagu - dash_total_realisasi
+        dash_serapan = (dash_total_realisasi / dash_total_pagu * 100) if dash_total_pagu > 0 else 0
+
+        if dash_serapan < 40:
+            dash_serapan_class = "metric-danger"
+        elif dash_serapan < 75:
+            dash_serapan_class = "metric-warning"
+        else:
+            dash_serapan_class = "metric-good"
+
+        d1, d2, d3, d4 = st.columns(4)
+        dash_metric_items = [
+            (d1, "Total Pagu", format_rupiah(dash_total_pagu), ""),
+            (d2, "Total Realisasi", format_rupiah(dash_total_realisasi), "metric-good"),
+            (d3, "Sisa Anggaran", format_rupiah(dash_total_sisa), ""),
+            (d4, "Serapan Anggaran", f"{dash_serapan:.2f}%".replace(".", ","), dash_serapan_class),
+        ]
+        for column, title, value, extra_class in dash_metric_items:
+            with column:
+                st.markdown(f"""
+                <div class="metric-card {extra_class}">
+                    <div class="metric-title">{title}</div>
+                    <div class="metric-value">{value}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+        st.caption("Detail per unit, filter, dan grafik lengkap ada di menu \"Lihat Semua Data\".")
+
+# =========================================================
 # INPUT DATA - ADMIN DAN OPERATOR
 # =========================================================
-if menu == "Input Data":
+elif menu == "Input Data":
     st.subheader("Input Data Anggaran")
 
     with st.form("input_form", clear_on_submit=True):
@@ -804,39 +851,14 @@ elif menu == "Lihat Semua Data":
         # Pagu maupun Realisasi diambil dari snapshot bulan PALING AKHIR
         # per kegiatan (Unit+MAK), bukan dijumlah lintas bulan — karena
         # keduanya angka "posisi terkini/kumulatif", bukan nilai per bulan
-        # yang berdiri sendiri.
+        # yang berdiri sendiri. (total_pagu dipakai di bawah untuk
+        # menghitung Sisa Anggaran & Serapan per bulan; kartu ringkasan
+        # totalnya sendiri sekarang ditampilkan di halaman Dashboard.)
         latest_snapshot = get_latest_snapshot(filtered)
         total_pagu = latest_snapshot["Pagu"].sum()
         total_realisasi = latest_snapshot["Realisasi"].sum()
         total_sisa = total_pagu - total_realisasi
         serapan = (total_realisasi / total_pagu * 100) if total_pagu > 0 else 0
-
-        c1, c2, c3, c4 = st.columns(4)
-
-        # Kartu Serapan diberi warna dinamis: merah kalau masih rendah,
-        # kuning kalau sedang, hijau kalau sudah tinggi -- supaya sekilas
-        # kelihatan status serapannya tanpa perlu baca angka dulu.
-        if serapan < 40:
-            serapan_class = "metric-danger"
-        elif serapan < 75:
-            serapan_class = "metric-warning"
-        else:
-            serapan_class = "metric-good"
-
-        metric_items = [
-            (c1, "Total Pagu", format_rupiah(total_pagu), ""),
-            (c2, "Total Realisasi", format_rupiah(total_realisasi), "metric-good"),
-            (c3, "Sisa Anggaran", format_rupiah(total_sisa), ""),
-            (c4, "Serapan Anggaran", f"{serapan:.2f}%".replace(".", ","), serapan_class),
-        ]
-        for column, title, value, extra_class in metric_items:
-            with column:
-                st.markdown(f"""
-                <div class="metric-card {extra_class}">
-                    <div class="metric-title">{title}</div>
-                    <div class="metric-value">{value}</div>
-                </div>
-                """, unsafe_allow_html=True)
 
         st.divider()
 
