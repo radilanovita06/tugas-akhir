@@ -923,6 +923,17 @@ elif menu == "Upload Template":
                         )
                         jumlah_duplikat = jumlah_sebelum - len(upload_df_bersih)
 
+                        # Cari baris mana saja yang kombinasi Unit+Tanggal+MAK-nya
+                        # muncul lebih dari 1x di file ini, supaya bisa ditunjukkan
+                        # detailnya ke pengguna (bukan cuma jumlahnya doang).
+                        if jumlah_duplikat > 0:
+                            mask_duplikat = upload_df.duplicated(
+                                subset=["Unit", "Tanggal", "MAK"], keep=False
+                            )
+                            baris_duplikat = upload_df[mask_duplikat].sort_values(
+                                ["Unit", "Tanggal", "MAK"]
+                            )
+
                         insert_bulk(upload_df)
                         st.toast("Upload sukses, data udah masuk 😹", icon="✅")
                         st.success(
@@ -932,8 +943,9 @@ elif menu == "Upload Template":
                             st.warning(
                                 f"Ditemukan {jumlah_duplikat} baris dengan kombinasi Unit+Bulan+MAK yang "
                                 "sama persis di dalam file ini. Yang dipakai adalah baris paling terakhir "
-                                "untuk tiap kombinasi tersebut."
+                                "untuk tiap kombinasi tersebut. Berikut baris-baris yang dobel:"
                             )
+                            render_summary_table(display_data(baris_duplikat))
                         st.balloons()
                     except Exception as exc:
                         st.error(f"Gagal menyimpan data ke Supabase: {exc}")
