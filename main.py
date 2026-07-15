@@ -115,7 +115,10 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
 [data-baseweb="tag"] svg { fill: #1e3a8a !important; }
 
 /* Tombol aksi utama (Simpan, Masuk, Upload, dsb) = NAVY BIRU,
-   disamakan dengan warna sidebar. Teks putih tegas biar kebaca jelas. */
+   disamakan dengan warna sidebar. Teks putih tegas biar kebaca jelas.
+   Pakai wildcard (*) supaya kena semua elemen anak di dalam tombol,
+   apapun tag-nya -- karena target tag spesifik (p/span/div) ternyata
+   tidak selalu cocok dengan struktur HTML tombol Streamlit. */
 .stButton button,
 .stFormSubmitButton button {
     background: linear-gradient(135deg, #0f2d52, #1d4d80) !important;
@@ -125,6 +128,11 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
     font-weight: 700 !important;
     box-shadow: 0 8px 18px rgba(15,45,82,.28);
 }
+.stButton button *,
+.stFormSubmitButton button * {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+}
 /* Tombol download = KUNING/EMAS (aksen brand) */
 .stDownloadButton button {
     background: linear-gradient(135deg, #C8A951, #d8bc6b) !important;
@@ -133,16 +141,28 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
     border-radius: 14px !important;
     font-weight: 700 !important;
 }
-/* Tombol destruktif (type="primary", dipakai untuk Hapus Data) = MERAH */
-.stButton button[kind="primary"] {
-    background: linear-gradient(135deg, #dc2626, #ef4444) !important;
-    color: #ffffff !important;
-    box-shadow: 0 8px 18px rgba(220,38,38,.25);
+.stDownloadButton button * {
+    color: #1e293b !important;
+    fill: #1e293b !important;
 }
-/* Tombol Logout di sidebar = MERAH */
-[data-testid="stSidebar"] .stButton button {
-    background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+/* Tombol destruktif (type="primary", dipakai untuk Hapus Data) = MAROON */
+.stButton button[kind="primary"] {
+    background: linear-gradient(135deg, #6b1414, #8f1d1d) !important;
     color: #ffffff !important;
+    box-shadow: 0 8px 18px rgba(107,20,20,.3);
+}
+.stButton button[kind="primary"] * {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+}
+/* Tombol Logout di sidebar = MAROON */
+[data-testid="stSidebar"] .stButton button {
+    background: linear-gradient(135deg, #6b1414, #8f1d1d) !important;
+    color: #ffffff !important;
+}
+[data-testid="stSidebar"] .stButton button * {
+    color: #ffffff !important;
+    fill: #ffffff !important;
 }
 /* Tombol Refresh Data = BIRU (bukan hijau, biar beda dari aksi simpan) */
 .st-key-refresh_btn_lihat_semua .stButton button,
@@ -150,6 +170,11 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
     background: linear-gradient(135deg, #2563eb, #3b82f6) !important;
     color: #ffffff !important;
     box-shadow: 0 8px 18px rgba(37,99,235,.25);
+}
+.st-key-refresh_btn_lihat_semua .stButton button *,
+.st-key-refresh_btn_kelola_data .stButton button * {
+    color: #ffffff !important;
+    fill: #ffffff !important;
 }
 .metric-card {
     background: #ffffff;
