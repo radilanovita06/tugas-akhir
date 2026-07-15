@@ -19,11 +19,15 @@ st.markdown("""
 }
 .block-container { padding-top: 2rem; max-width: 1450px; }
 [data-testid="stSidebar"] {
-    background: #ffffff !important;
-    border-right: 1px solid #e2e8f0;
+    background: linear-gradient(180deg, #0f2d52 0%, #1d4d80 100%) !important;
+    border-right: 3px solid #C8A951;
 }
-[data-testid="stSidebar"] * { color: #1e293b !important; }
-[data-testid="stSidebar"] .user-role { color: #64748b !important; }
+[data-testid="stSidebar"] * { color: #ffffff !important; }
+[data-testid="stSidebar"] .user-role { color: #cfe0f5 !important; }
+[data-testid="stSidebar"] .user-card {
+    background: rgba(255,255,255,.08) !important;
+    border: 1px solid rgba(255,255,255,.18) !important;
+}
 .gov-header {
     background: linear-gradient(135deg, #0f2d52, #1d4d80);
     border-radius: 28px;
@@ -38,15 +42,15 @@ st.markdown("""
     background: #ffffff;
     border-radius: 26px;
     padding: 30px;
-    border: 1px solid #e6eaf1;
-    box-shadow: 0 14px 34px rgba(15,23,42,.06);
+    border: 2px solid #cbd5e1;
+    box-shadow: 0 14px 34px rgba(15,23,42,.08);
 }
 .chart-card {
     background: #ffffff;
     border-radius: 22px;
     padding: 22px;
-    border: 1px solid #e6eaf1;
-    box-shadow: 0 10px 26px rgba(15,23,42,.05);
+    border: 2px solid #cbd5e1;
+    box-shadow: 0 10px 26px rgba(15,23,42,.07);
 }
 h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
 .stTextInput input,
@@ -56,14 +60,14 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
     background: #f8fafc !important;
     color: #1e293b !important;
     border-radius: 14px !important;
-    border: 1px solid #d7deeb !important;
+    border: 1.5px solid #b9c4d6 !important;
 }
 .stSelectbox div[data-baseweb="select"],
 .stMultiSelect div[data-baseweb="select"] {
     background: #f8fafc !important;
     border-radius: 14px !important;
     color: #1e293b !important;
-    border: 1px solid #d7deeb !important;
+    border: 1.5px solid #b9c4d6 !important;
 }
 .stSelectbox div[data-baseweb="select"] *,
 .stMultiSelect div[data-baseweb="select"] * { color: #1e293b !important; }
@@ -101,8 +105,9 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
     background: #ffffff;
     border-radius: 22px;
     padding: 24px;
+    border: 1.5px solid #cbd5e1;
     border-left: 6px solid #C8A951;
-    box-shadow: 0 10px 26px rgba(15,23,42,.06);
+    box-shadow: 0 10px 26px rgba(15,23,42,.07);
 }
 .metric-card.metric-good { border-left-color: #16a34a; }
 .metric-card.metric-warning { border-left-color: #f59e0b; }
@@ -112,7 +117,7 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
 [data-testid="stDataFrame"] {
     border-radius: 18px;
     overflow: hidden;
-    border: 1px solid #e2e8f0;
+    border: 1.5px solid #cbd5e1;
 }
 .login-wrap { max-width: 460px; margin: 7vh auto 0 auto; }
 .login-logo {
