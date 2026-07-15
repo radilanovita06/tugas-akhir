@@ -114,16 +114,16 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
 [data-baseweb="tag"] span { color: #1e3a8a !important; }
 [data-baseweb="tag"] svg { fill: #1e3a8a !important; }
 
-/* Tombol aksi utama (Simpan, Masuk, Upload, dsb) = MERAH, disamakan
-   dengan warna tombol Logout */
+/* Tombol aksi utama (Simpan, Masuk, Upload, dsb) = NAVY BIRU,
+   disamakan dengan warna sidebar. Teks putih tegas biar kebaca jelas. */
 .stButton button,
 .stFormSubmitButton button {
-    background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+    background: linear-gradient(135deg, #0f2d52, #1d4d80) !important;
     color: #ffffff !important;
     border: none !important;
     border-radius: 14px !important;
     font-weight: 700 !important;
-    box-shadow: 0 8px 18px rgba(220,38,38,.22);
+    box-shadow: 0 8px 18px rgba(15,45,82,.28);
 }
 /* Tombol download = KUNING/EMAS (aksen brand) */
 .stDownloadButton button {
