@@ -75,32 +75,32 @@ st.markdown("""
     box-shadow: 0 10px 26px rgba(15,23,42,.07);
 }
 h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
+/* SEMUA kolom input (teks, angka, textarea, tanggal, dropdown, multiselect)
+   diberi warna isi PENUH (bukan cuma border) supaya konsisten di seluruh
+   halaman -- fill biru muda dengan teks biru gelap tebal biar tetap
+   jelas dibaca. */
 .stTextInput input,
 .stNumberInput input,
 .stTextArea textarea,
-.stDateInput input {
-    background: #f8fafc !important;
-    color: #1e293b !important;
-    border-radius: 14px !important;
-    border: 1.5px solid #a9c8ea !important;
-}
+.stDateInput input,
 .stSelectbox div[data-baseweb="select"],
-.stMultiSelect div[data-baseweb="select"],
 .stSelectbox div[data-baseweb="select"] > div,
+.stMultiSelect div[data-baseweb="select"],
 .stMultiSelect div[data-baseweb="select"] > div {
-    background-color: #ffffff !important;
+    background-color: #dbeafe !important;
+    color: #0f2d52 !important;
     border-radius: 14px !important;
-    color: #1e293b !important;
-    border: 1.5px solid #a9c8ea !important;
+    border: 1.5px solid #93c5fd !important;
+    font-weight: 600 !important;
 }
 .stSelectbox div[data-baseweb="select"] *,
-.stMultiSelect div[data-baseweb="select"] * { color: #1e293b !important; }
+.stMultiSelect div[data-baseweb="select"] * { color: #0f2d52 !important; }
 
 /* Placeholder teks di kolom input/search supaya tetap kebaca */
 .stTextInput input::placeholder,
 .stNumberInput input::placeholder,
 .stTextArea textarea::placeholder {
-    color: #94a3b8 !important;
+    color: #5b7ca8 !important;
     opacity: 1 !important;
 }
 
@@ -114,15 +114,16 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
 [data-baseweb="tag"] span { color: #1e3a8a !important; }
 [data-baseweb="tag"] svg { fill: #1e3a8a !important; }
 
-/* Tombol aksi utama (Simpan, Masuk, Upload, dsb) = HIJAU */
+/* Tombol aksi utama (Simpan, Masuk, Upload, dsb) = MERAH, disamakan
+   dengan warna tombol Logout */
 .stButton button,
 .stFormSubmitButton button {
-    background: linear-gradient(135deg, #16a34a, #22c55e) !important;
+    background: linear-gradient(135deg, #dc2626, #ef4444) !important;
     color: #ffffff !important;
     border: none !important;
     border-radius: 14px !important;
     font-weight: 700 !important;
-    box-shadow: 0 8px 18px rgba(22,163,74,.22);
+    box-shadow: 0 8px 18px rgba(220,38,38,.22);
 }
 /* Tombol download = KUNING/EMAS (aksen brand) */
 .stDownloadButton button {
