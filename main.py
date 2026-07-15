@@ -13,9 +13,9 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-.stApp { background: #f4f6fb !important; }
+.stApp { background: #eaf3fc !important; }
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(180deg, #f9fafc 0%, #eef2f8 55%, #e8edf5 100%) !important;
+    background: linear-gradient(180deg, #f4faff 0%, #e7f1fb 55%, #dbe9f8 100%) !important;
 }
 .block-container { padding-top: 2rem; max-width: 1450px; }
 [data-testid="stSidebar"] {
@@ -36,20 +36,31 @@ st.markdown("""
     box-shadow: 0 20px 40px rgba(15,23,42,.15);
     margin-bottom: 30px;
 }
-.gov-header h1 { color: white !important; font-size: 34px; margin: 0; }
-.gov-header p { color: #dbeafe !important; margin-top: 10px; }
+.gov-header h1 {
+    color: #ffffff !important;
+    font-size: 34px;
+    font-weight: 800 !important;
+    margin: 0;
+    letter-spacing: .2px;
+}
+.gov-header p {
+    color: #e8f1fd !important;
+    margin-top: 10px;
+    font-weight: 600 !important;
+    font-size: 15px;
+}
 .card {
     background: #ffffff;
     border-radius: 26px;
     padding: 30px;
-    border: 2px solid #cbd5e1;
+    border: 2px solid #bcd9f4;
     box-shadow: 0 14px 34px rgba(15,23,42,.08);
 }
 .chart-card {
     background: #ffffff;
     border-radius: 22px;
     padding: 22px;
-    border: 2px solid #cbd5e1;
+    border: 2px solid #bcd9f4;
     box-shadow: 0 10px 26px rgba(15,23,42,.07);
 }
 h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
@@ -60,17 +71,35 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
     background: #f8fafc !important;
     color: #1e293b !important;
     border-radius: 14px !important;
-    border: 1.5px solid #b9c4d6 !important;
+    border: 1.5px solid #a9c8ea !important;
 }
 .stSelectbox div[data-baseweb="select"],
 .stMultiSelect div[data-baseweb="select"] {
     background: #f8fafc !important;
     border-radius: 14px !important;
     color: #1e293b !important;
-    border: 1.5px solid #b9c4d6 !important;
+    border: 1.5px solid #a9c8ea !important;
 }
 .stSelectbox div[data-baseweb="select"] *,
 .stMultiSelect div[data-baseweb="select"] * { color: #1e293b !important; }
+
+/* Placeholder teks di kolom input/search supaya tetap kebaca */
+.stTextInput input::placeholder,
+.stNumberInput input::placeholder,
+.stTextArea textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1 !important;
+}
+
+/* Chip/tag hasil pilihan di multiselect (Filter Unit, Filter Bulan, dsb)
+   dibuat biru muda netral, bukan merah -- supaya tidak berkesan
+   "peringatan/bahaya" padahal cuma menunjukkan filter aktif. */
+[data-baseweb="tag"] {
+    background-color: #dbeafe !important;
+    border: 1px solid #93c5fd !important;
+}
+[data-baseweb="tag"] span { color: #1e3a8a !important; }
+[data-baseweb="tag"] svg { fill: #1e3a8a !important; }
 
 /* Tombol aksi utama (Simpan, Masuk, Upload, dsb) = HIJAU */
 .stButton button,
@@ -105,7 +134,7 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
     background: #ffffff;
     border-radius: 22px;
     padding: 24px;
-    border: 1.5px solid #cbd5e1;
+    border: 1.5px solid #bcd9f4;
     border-left: 6px solid #C8A951;
     box-shadow: 0 10px 26px rgba(15,23,42,.07);
 }
@@ -117,7 +146,7 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
 [data-testid="stDataFrame"] {
     border-radius: 18px;
     overflow: hidden;
-    border: 1.5px solid #cbd5e1;
+    border: 1.5px solid #bcd9f4;
 }
 .login-wrap { max-width: 460px; margin: 7vh auto 0 auto; }
 .login-logo {
@@ -131,7 +160,7 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
 .login-subtitle { text-align: center; color: #64748b !important; margin-bottom: 28px; }
 .user-card {
     background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cfe3f7;
     border-radius: 16px; padding: 14px; margin: 10px 0 18px 0;
 }
 .user-name { font-weight: 800; color: #0f172a !important; }
@@ -551,7 +580,6 @@ def show_login():
 
     _, center, _ = st.columns([1, 1.15, 1])
     with center:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
         with st.form("login_form"):
             username = st.text_input("Username")
             password = st.text_input("Password", type="password")
@@ -562,7 +590,6 @@ def show_login():
                 st.rerun()
             else:
                 st.error("Username atau password salah")
-        st.markdown("</div>", unsafe_allow_html=True)
 
 
 if not st.session_state.authenticated:
@@ -604,7 +631,6 @@ st.markdown("""
 # INPUT DATA - ADMIN DAN OPERATOR
 # =========================================================
 if menu == "Input Data":
-    st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("Input Data Anggaran")
 
     with st.form("input_form", clear_on_submit=True):
@@ -632,13 +658,11 @@ if menu == "Input Data":
             except Exception as exc:
                 st.error(f"Gagal menyimpan data: {exc}")
 
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
 # UPLOAD - ADMIN DAN OPERATOR
 # =========================================================
 elif menu == "Upload Template":
-    st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("Upload Data Menggunakan Template")
 
     template = pd.DataFrame(columns=TEMPLATE_COLUMNS)
@@ -718,13 +742,11 @@ elif menu == "Upload Template":
         except Exception as exc:
             st.error(f"File gagal dibaca: {exc}")
 
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
 # LIHAT DATA - ADMIN DAN OPERATOR
 # =========================================================
 elif menu == "Lihat Semua Data":
-    st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("Monitoring Data Anggaran")
 
     if st.button("🔄 Refresh Data"):
@@ -835,7 +857,6 @@ elif menu == "Lihat Semua Data":
             g1, g2 = st.columns(2)
 
             with g1:
-                st.markdown('<div class="chart-card">', unsafe_allow_html=True)
                 area = (
                     alt.Chart(month_summary)
                     .mark_area(
@@ -864,15 +885,13 @@ elif menu == "Lihat Semua Data":
                     .properties(height=330, title="Tren Realisasi per Bulan")
                 )
                 st.altair_chart(
-                    area.configure_title(color="#0f172a", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
+                    area.configure_title(color="#0f2d52", fontSize=17, anchor="start")
+                        .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
                         .configure_view(strokeWidth=0),
                     use_container_width=True
                 )
-                st.markdown("</div>", unsafe_allow_html=True)
 
             with g2:
-                st.markdown('<div class="chart-card">', unsafe_allow_html=True)
                 long_month = month_summary.melt(
                     id_vars=["Tanggal"],
                     value_vars=["Pagu", "Realisasi"],
@@ -901,18 +920,16 @@ elif menu == "Lihat Semua Data":
                     .properties(height=330, title="Pagu vs Realisasi (Posisi s.d. Bulan Berjalan)")
                 )
                 st.altair_chart(
-                    grouped_bar.configure_title(color="#0f172a", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
-                        .configure_legend(labelColor="#334155")
+                    grouped_bar.configure_title(color="#0f2d52", fontSize=17, anchor="start")
+                        .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
+                        .configure_legend(labelColor="#375073")
                         .configure_view(strokeWidth=0),
                     use_container_width=True
                 )
-                st.markdown("</div>", unsafe_allow_html=True)
 
             g3, g4 = st.columns([1.35, 1])
 
             with g3:
-                st.markdown('<div class="chart-card">', unsafe_allow_html=True)
                 serapan_chart = (
                     alt.Chart(month_summary)
                     .mark_bar(cornerRadiusEnd=7)
@@ -936,15 +953,13 @@ elif menu == "Lihat Semua Data":
                 ).encode(x="target:Q")
                 st.altair_chart(
                     (serapan_chart + target_line)
-                    .configure_title(color="#0f172a", fontSize=17, anchor="start")
-                    .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
+                    .configure_title(color="#0f2d52", fontSize=17, anchor="start")
+                    .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
                     .configure_view(strokeWidth=0),
                     use_container_width=True
                 )
-                st.markdown("</div>", unsafe_allow_html=True)
 
             with g4:
-                st.markdown('<div class="chart-card">', unsafe_allow_html=True)
                 composition = pd.DataFrame({
                     "Kategori": ["Realisasi", "Sisa Anggaran"],
                     "Nilai": [total_realisasi, max(total_sisa, 0)]
@@ -974,12 +989,11 @@ elif menu == "Lihat Semua Data":
                 )
                 st.altair_chart(
                     (donut + center_text)
-                    .configure_title(color="#0f172a", fontSize=17, anchor="start")
-                    .configure_legend(labelColor="#334155")
+                    .configure_title(color="#0f2d52", fontSize=17, anchor="start")
+                    .configure_legend(labelColor="#375073")
                     .configure_view(strokeWidth=0),
                     use_container_width=True
                 )
-                st.markdown("</div>", unsafe_allow_html=True)
 
             st.subheader("Visualisasi per Unit")
 
@@ -1006,7 +1020,6 @@ elif menu == "Lihat Semua Data":
                 u1, u2 = st.columns(2)
 
                 with u1:
-                    st.markdown('<div class="chart-card">', unsafe_allow_html=True)
                     unit_realization = (
                         alt.Chart(unit_summary)
                         .mark_bar(cornerRadiusEnd=8)
@@ -1026,15 +1039,13 @@ elif menu == "Lihat Semua Data":
                         .properties(height=340, title="Realisasi Anggaran per Unit")
                     )
                     st.altair_chart(
-                        unit_realization.configure_title(color="#0f172a", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
+                        unit_realization.configure_title(color="#0f2d52", fontSize=17, anchor="start")
+                        .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
                         .configure_view(strokeWidth=0),
                         use_container_width=True
                     )
-                    st.markdown("</div>", unsafe_allow_html=True)
 
                 with u2:
-                    st.markdown('<div class="chart-card">', unsafe_allow_html=True)
                     unit_long = unit_summary.melt(
                         id_vars=["Unit"],
                         value_vars=["Pagu", "Realisasi"],
@@ -1063,18 +1074,16 @@ elif menu == "Lihat Semua Data":
                         .properties(height=340, title="Pagu vs Realisasi per Unit")
                     )
                     st.altair_chart(
-                        unit_compare.configure_title(color="#0f172a", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
-                        .configure_legend(labelColor="#334155")
+                        unit_compare.configure_title(color="#0f2d52", fontSize=17, anchor="start")
+                        .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
+                        .configure_legend(labelColor="#375073")
                         .configure_view(strokeWidth=0),
                         use_container_width=True
                     )
-                    st.markdown("</div>", unsafe_allow_html=True)
 
                 u3, u4 = st.columns([1.3, 1])
 
                 with u3:
-                    st.markdown('<div class="chart-card">', unsafe_allow_html=True)
                     unit_absorption = (
                         alt.Chart(unit_summary)
                         .mark_bar(cornerRadiusEnd=8)
@@ -1102,15 +1111,13 @@ elif menu == "Lihat Semua Data":
                     ).encode(x="target:Q")
                     st.altair_chart(
                         (unit_absorption + target_unit)
-                        .configure_title(color="#0f172a", fontSize=17, anchor="start")
-                        .configure_axis(labelColor="#334155", titleColor="#334155", gridColor="#e2e8f0")
+                        .configure_title(color="#0f2d52", fontSize=17, anchor="start")
+                        .configure_axis(labelColor="#375073", titleColor="#375073", gridColor="#dbe9f8")
                         .configure_view(strokeWidth=0),
                         use_container_width=True
                     )
-                    st.markdown("</div>", unsafe_allow_html=True)
 
                 with u4:
-                    st.markdown('<div class="chart-card">', unsafe_allow_html=True)
                     unit_share = unit_summary[["Unit", "Realisasi"]].copy()
                     unit_share = unit_share[unit_share["Realisasi"] > 0]
                     unit_share["Realisasi Rupiah"] = unit_share["Realisasi"].apply(format_rupiah)
@@ -1128,12 +1135,11 @@ elif menu == "Lihat Semua Data":
                         .properties(height=340, title="Kontribusi Realisasi per Unit")
                     )
                     st.altair_chart(
-                        unit_donut.configure_title(color="#0f172a", fontSize=17, anchor="start")
-                        .configure_legend(labelColor="#334155", columns=2)
+                        unit_donut.configure_title(color="#0f2d52", fontSize=17, anchor="start")
+                        .configure_legend(labelColor="#375073", columns=2)
                         .configure_view(strokeWidth=0),
                         use_container_width=True
                     )
-                    st.markdown("</div>", unsafe_allow_html=True)
 
                 st.subheader("Ringkasan per Unit")
                 unit_display = unit_summary[["Unit", "Pagu", "Realisasi", "Sisa Anggaran", "Serapan"]].copy()
@@ -1165,7 +1171,6 @@ elif menu == "Lihat Semua Data":
         if not is_admin():
             st.info("Akun Operator hanya dapat input, upload, lihat, dan download data")
 
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================================================
 # KELOLA DATA - KHUSUS ADMIN
@@ -1175,7 +1180,6 @@ elif menu == "Kelola Data":
         st.error("Akses ditolak")
         st.stop()
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("Kelola Data")
 
     if st.button("🔄 Refresh Data"):
@@ -1260,5 +1264,3 @@ elif menu == "Kelola Data":
                 st.rerun()
             except Exception as exc:
                 st.error(f"Gagal menghapus data: {exc}")
-
-    st.markdown("</div>", unsafe_allow_html=True)
