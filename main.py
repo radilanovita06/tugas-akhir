@@ -253,6 +253,18 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
 .login-logo img { height: 56px; }
 .login-title { text-align: center; font-size: 30px; font-weight: 800; color: #0f172a !important; }
 .login-subtitle { text-align: center; color: #64748b !important; margin-bottom: 28px; }
+.app-copyright {
+    position: fixed;
+    bottom: 10px;
+    right: 16px;
+    font-size: 12px;
+    color: #94a3b8 !important;
+    background: rgba(255,255,255,.85);
+    padding: 4px 10px;
+    border-radius: 8px;
+    z-index: 999;
+    pointer-events: none;
+}
 .user-card {
     background: #f8fafc;
     border: 1px solid #cfe3f7;
@@ -262,6 +274,11 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
 .user-role { font-size: 12px; color: #64748b !important; }
 </style>
 """, unsafe_allow_html=True)
+
+st.markdown(
+    '<div class="app-copyright">© 2026 RDN-UNJ</div>',
+    unsafe_allow_html=True
+)
 
 # =========================================================
 # KONEKSI SUPABASE
