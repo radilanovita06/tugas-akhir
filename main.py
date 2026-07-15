@@ -197,22 +197,44 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
     overflow: hidden;
     text-overflow: ellipsis;
 }
-[data-testid="stDataFrame"] {
+[data-testid="stDataFrame"],
+[data-testid="stDataEditor"] {
     border-radius: 18px;
     overflow: hidden;
+    border: 2px solid #1d4d80;
+}
+/* Tabel ringkasan custom (Ringkasan per Unit, Ringkasan Bulanan) --
+   st.dataframe dirender pakai canvas jadi warnanya tidak bisa diubah
+   lewat CSS, makanya tabel-tabel ringkasan itu dibikin manual pakai
+   HTML supaya headernya bisa disamakan dengan warna tombol Download
+   (emas), teks putih. */
+.custom-table-wrap {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 520px;
+    border-radius: 18px;
     border: 1.5px solid #bcd9f4;
+    background: #ffffff;
 }
-/* Header kolom tabel (Ringkasan per Unit, Ringkasan Bulanan, dsb)
-   dikasih warna navy sama seperti sidebar, teks putih. */
-[data-testid="stDataFrame"] thead tr th,
-[data-testid="stDataFrame"] [role="columnheader"] {
-    background-color: #0f2d52 !important;
+.custom-table { width: 100%; border-collapse: collapse; }
+.custom-table thead th {
+    background: linear-gradient(135deg, #C8A951, #d8bc6b) !important;
     color: #ffffff !important;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 700;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
-[data-testid="stDataFrame"] thead tr th *,
-[data-testid="stDataFrame"] [role="columnheader"] * {
-    color: #ffffff !important;
+.custom-table tbody td {
+    padding: 10px 16px;
+    color: #1e293b !important;
+    border-bottom: 1px solid #e6eaf1;
 }
+.custom-table tbody tr:nth-child(even) { background: #f4f9ff; }
+.custom-table tbody tr:hover { background: #eaf3fc; }
 .login-wrap { max-width: 460px; margin: 7vh auto 0 auto; }
 .login-logo {
     width: 72px; height: 72px; margin: 0 auto 18px auto;
@@ -566,6 +588,27 @@ def get_latest_snapshot(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def render_summary_table(df: pd.DataFrame):
+    """st.dataframe di Streamlit versi baru dirender pakai canvas, jadi
+    warna header-nya TIDAK BISA diubah lewat CSS sama sekali. Untuk tabel
+    ringkasan yang statis (bukan tabel besar yang perlu sortir/scroll),
+    kita bikin tabel HTML manual supaya warna headernya bisa dikontrol
+    penuh -- disamakan dengan warna tombol Download (emas), teks putih."""
+    headers_html = "".join(f"<th>{col}</th>" for col in df.columns)
+    rows_html = ""
+    for _, row in df.iterrows():
+        cells = "".join(f"<td>{row[col]}</td>" for col in df.columns)
+        rows_html += f"<tr>{cells}</tr>"
+    st.markdown(f"""
+    <div class="custom-table-wrap">
+    <table class="custom-table">
+        <thead><tr>{headers_html}</tr></thead>
+        <tbody>{rows_html}</tbody>
+    </table>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def display_data(df: pd.DataFrame) -> pd.DataFrame:
     result = normalize_data(df)
     for col in ["Pagu", "Realisasi", "Sisa Anggaran"]:
@@ -851,7 +894,7 @@ elif menu == "Upload Template":
                 upload_df["Unit"] = selected_unit
                 upload_df = normalize_data(upload_df)
                 st.subheader("Preview")
-                st.dataframe(display_data(upload_df), use_container_width=True, hide_index=True)
+                render_summary_table(display_data(upload_df))
 
                 if st.button("Simpan Data Upload", use_container_width=True):
                     progress = st.progress(0, text="Menyiapkan data...")
@@ -1266,7 +1309,7 @@ elif menu == "Lihat Semua Data":
                 unit_display["Realisasi"] = unit_display["Realisasi"].apply(format_rupiah)
                 unit_display["Sisa Anggaran"] = unit_display["Sisa Anggaran"].apply(format_rupiah)
                 unit_display["Serapan"] = unit_display["Serapan"].apply(lambda x: f"{x:.2f}%".replace(".", ","))
-                st.dataframe(unit_display, use_container_width=True, hide_index=True)
+                render_summary_table(unit_display)
 
             st.subheader("Ringkasan Bulanan")
             monthly_display = month_summary[["Tanggal", "Pagu", "Realisasi", "Sisa Anggaran", "Serapan"]].copy()
@@ -1274,11 +1317,11 @@ elif menu == "Lihat Semua Data":
             monthly_display["Realisasi"] = monthly_display["Realisasi"].apply(format_rupiah)
             monthly_display["Sisa Anggaran"] = monthly_display["Sisa Anggaran"].apply(format_rupiah)
             monthly_display["Serapan"] = monthly_display["Serapan"].apply(lambda x: f"{x:.2f}%".replace(".", ","))
-            st.dataframe(monthly_display, use_container_width=True, hide_index=True)
+            render_summary_table(monthly_display)
 
         st.subheader("Detail Data")
         display_df = display_data(filtered)
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        render_summary_table(display_df)
 
         st.download_button(
             "Download Data",
