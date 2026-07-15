@@ -674,7 +674,15 @@ def insert_bulk(df: pd.DataFrame):
     """Upsert banyak baris sekaligus (dipakai saat Upload Template).
     Baris dengan Unit+Tanggal+MAK yang sama dengan data lama akan
     DIGANTI nilainya (Pagu/Realisasi jadi angka terbaru dari file),
-    bukan ditambahkan sebagai baris baru sehingga tidak dobel hitung."""
+    bukan ditambahkan sebagai baris baru sehingga tidak dobel hitung.
+
+    Kalau file yang diupload sendiri punya baris DOBEL untuk kombinasi
+    Unit+Tanggal+MAK yang sama, Postgres akan menolak (error 21000:
+    "ON CONFLICT DO UPDATE command cannot affect row a second time")
+    karena tidak bisa update baris yang sama dua kali dalam satu
+    perintah. Makanya di sini dibersihkan dulu -- kalau ada duplikat,
+    yang dipakai baris yang PALING TERAKHIR muncul di file."""
+    df = df.drop_duplicates(subset=["Unit", "Tanggal", "MAK"], keep="last")
     records = df.rename(columns=DB_COLUMN_MAP)[list(DB_COLUMN_MAP.values())].to_dict("records")
     if records:
         supabase.table(TABLE_NAME).upsert(
@@ -909,11 +917,23 @@ elif menu == "Upload Template":
                         progress.progress(value, text=message)
 
                     try:
+                        jumlah_sebelum = len(upload_df)
+                        upload_df_bersih = upload_df.drop_duplicates(
+                            subset=["Unit", "Tanggal", "MAK"], keep="last"
+                        )
+                        jumlah_duplikat = jumlah_sebelum - len(upload_df_bersih)
+
                         insert_bulk(upload_df)
                         st.toast("Upload sukses, data udah masuk 😹", icon="✅")
                         st.success(
-                            f"Upload berhasil. {len(upload_df)} baris data udah disimpan ke Supabase."
+                            f"Upload berhasil. {len(upload_df_bersih)} baris data udah disimpan ke Supabase."
                         )
+                        if jumlah_duplikat > 0:
+                            st.warning(
+                                f"Ditemukan {jumlah_duplikat} baris dengan kombinasi Unit+Bulan+MAK yang "
+                                "sama persis di dalam file ini. Yang dipakai adalah baris paling terakhir "
+                                "untuk tiap kombinasi tersebut."
+                            )
                         st.balloons()
                     except Exception as exc:
                         st.error(f"Gagal menyimpan data ke Supabase: {exc}")
@@ -1402,16 +1422,31 @@ elif menu == "Kelola Data":
         st.divider()
         st.subheader("Hapus Data")
 
-        delete_options = df_raw["id"].tolist()
-        selected_rows = st.multiselect(
-            "Pilih data yang mau dihapus",
-            options=delete_options,
-            format_func=lambda row_id: (
-                f"No {df_raw.loc[df_raw['id'] == row_id, 'No'].values[0]} | "
-                f"{df_raw.loc[df_raw['id'] == row_id, 'MAK'].values[0]} | "
-                f"{df_raw.loc[df_raw['id'] == row_id, 'Kegiatan'].values[0]}"
-            )
+        hapus_unit = st.selectbox(
+            "Filter Unit",
+            UNIT_LIST,
+            index=UNIT_LIST.index(df_raw["Unit"].mode()[0]) if not df_raw.empty and df_raw["Unit"].mode().size else 0,
+            key="hapus_filter_unit"
         )
+        df_hapus = df_raw[df_raw["Unit"] == hapus_unit].sort_values("id", ascending=False)
+
+        if df_hapus.empty:
+            st.info(f"Belum ada data untuk unit {hapus_unit}.")
+            selected_rows = []
+        else:
+            id_terbaru = df_raw["id"].max()
+            delete_options = df_hapus["id"].tolist()
+            selected_rows = st.multiselect(
+                f"Pilih kegiatan yang mau dihapus (Unit: {hapus_unit})",
+                options=delete_options,
+                format_func=lambda row_id: (
+                    f"{'🆕 ' if row_id == id_terbaru else ''}"
+                    f"{df_raw.loc[df_raw['id'] == row_id, 'Tanggal'].values[0]} | "
+                    f"{df_raw.loc[df_raw['id'] == row_id, 'MAK'].values[0]} | "
+                    f"{df_raw.loc[df_raw['id'] == row_id, 'Kegiatan'].values[0]}"
+                    f"{' (data paling baru ditambahkan)' if row_id == id_terbaru else ''}"
+                )
+            )
 
         confirm_delete = st.checkbox("Saya yakin mau menghapus data yang dipilih")
 
