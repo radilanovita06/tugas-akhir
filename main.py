@@ -146,12 +146,20 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
     border: 1.5px solid #bcd9f4;
     border-left: 6px solid #C8A951;
     box-shadow: 0 10px 26px rgba(15,23,42,.07);
+    margin-bottom: 16px;
 }
 .metric-card.metric-good { border-left-color: #16a34a; }
 .metric-card.metric-warning { border-left-color: #f59e0b; }
 .metric-card.metric-danger { border-left-color: #dc2626; }
 .metric-title { color: #64748b !important; font-size: 14px; }
-.metric-value { color: #0f172a !important; font-size: 25px; font-weight: 800; }
+.metric-value {
+    color: #0f172a !important;
+    font-size: clamp(18px, 2.1vw, 25px);
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 [data-testid="stDataFrame"] {
     border-radius: 18px;
     overflow: hidden;
@@ -665,7 +673,8 @@ if menu == "Dashboard":
         else:
             dash_serapan_class = "metric-good"
 
-        d1, d2, d3, d4 = st.columns(4)
+        d1, d2 = st.columns(2)
+        d3, d4 = st.columns(2)
         dash_metric_items = [
             (d1, "Total Pagu", format_rupiah(dash_total_pagu), ""),
             (d2, "Total Realisasi", format_rupiah(dash_total_realisasi), "metric-good"),
