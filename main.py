@@ -6,85 +6,113 @@ import time
 from supabase import create_client, Client
 
 st.set_page_config(
-    page_title="Sistem Monitoring Anggaran",
+    page_title="Sistem Informasi Realisasi Anggaran (SIRA)",
     page_icon="🏛️",
     layout="wide"
 )
 
 st.markdown("""
 <style>
-.stApp { background: #0b1727 !important; }
+.stApp { background: #f4f6fb !important; }
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(180deg, #10233d 0%, #183250 45%, #213d5e 100%) !important;
+    background: linear-gradient(180deg, #f9fafc 0%, #eef2f8 55%, #e8edf5 100%) !important;
 }
 .block-container { padding-top: 2rem; max-width: 1450px; }
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #081729, #102947) !important;
-    border-right: 2px solid #C8A951;
+    background: #ffffff !important;
+    border-right: 1px solid #e2e8f0;
 }
-[data-testid="stSidebar"] * { color: white !important; }
+[data-testid="stSidebar"] * { color: #1e293b !important; }
+[data-testid="stSidebar"] .user-role { color: #64748b !important; }
 .gov-header {
-    background: linear-gradient(135deg, #0f2d52, #214d7d);
+    background: linear-gradient(135deg, #0f2d52, #1d4d80);
     border-radius: 28px;
     padding: 35px;
     border-left: 8px solid #C8A951;
-    box-shadow: 0 20px 40px rgba(0,0,0,.35);
+    box-shadow: 0 20px 40px rgba(15,23,42,.15);
     margin-bottom: 30px;
 }
 .gov-header h1 { color: white !important; font-size: 34px; margin: 0; }
 .gov-header p { color: #dbeafe !important; margin-top: 10px; }
 .card {
-    background: rgba(18, 33, 53, 0.94);
+    background: #ffffff;
     border-radius: 26px;
     padding: 30px;
-    border: 1px solid rgba(255,255,255,.08);
-    box-shadow: 0 20px 50px rgba(0,0,0,.25);
+    border: 1px solid #e6eaf1;
+    box-shadow: 0 14px 34px rgba(15,23,42,.06);
 }
 .chart-card {
-    background: rgba(22, 40, 63, 0.92);
+    background: #ffffff;
     border-radius: 22px;
     padding: 22px;
-    border: 1px solid rgba(255,255,255,.08);
+    border: 1px solid #e6eaf1;
+    box-shadow: 0 10px 26px rgba(15,23,42,.05);
 }
-h1, h2, h3, h4, h5, h6, label, p, span { color: #f1f5f9 !important; }
+h1, h2, h3, h4, h5, h6, label, p, span { color: #1e293b !important; }
 .stTextInput input,
 .stNumberInput input,
 .stTextArea textarea,
 .stDateInput input {
-    background: #16283f !important;
-    color: white !important;
+    background: #f8fafc !important;
+    color: #1e293b !important;
     border-radius: 14px !important;
-    border: 1px solid #35506f !important;
+    border: 1px solid #d7deeb !important;
 }
 .stSelectbox div[data-baseweb="select"],
 .stMultiSelect div[data-baseweb="select"] {
-    background: #16283f !important;
+    background: #f8fafc !important;
     border-radius: 14px !important;
-    color: white !important;
-    border: 1px solid #35506f !important;
+    color: #1e293b !important;
+    border: 1px solid #d7deeb !important;
 }
+.stSelectbox div[data-baseweb="select"] *,
+.stMultiSelect div[data-baseweb="select"] * { color: #1e293b !important; }
+
+/* Tombol aksi utama (Simpan, Masuk, Upload, dsb) = HIJAU */
 .stButton button,
-.stFormSubmitButton button,
+.stFormSubmitButton button {
+    background: linear-gradient(135deg, #16a34a, #22c55e) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 14px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 8px 18px rgba(22,163,74,.22);
+}
+/* Tombol download = KUNING/EMAS (aksen brand) */
 .stDownloadButton button {
     background: linear-gradient(135deg, #C8A951, #d8bc6b) !important;
-    color: #0f172a !important;
+    color: #1e293b !important;
     border: none !important;
     border-radius: 14px !important;
     font-weight: 700 !important;
 }
+/* Tombol destruktif (type="primary", dipakai untuk Hapus Data) = MERAH */
+.stButton button[kind="primary"] {
+    background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 18px rgba(220,38,38,.25);
+}
+/* Tombol Logout di sidebar = MERAH */
+[data-testid="stSidebar"] .stButton button {
+    background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+    color: #ffffff !important;
+}
 .metric-card {
-    background: linear-gradient(135deg, #16283f, #213754);
+    background: #ffffff;
     border-radius: 22px;
     padding: 24px;
     border-left: 6px solid #C8A951;
-    box-shadow: 0 15px 35px rgba(0,0,0,.20);
+    box-shadow: 0 10px 26px rgba(15,23,42,.06);
 }
-.metric-title { color: #b6c2d1 !important; font-size: 14px; }
-.metric-value { color: white !important; font-size: 25px; font-weight: 800; }
+.metric-card.metric-good { border-left-color: #16a34a; }
+.metric-card.metric-warning { border-left-color: #f59e0b; }
+.metric-card.metric-danger { border-left-color: #dc2626; }
+.metric-title { color: #64748b !important; font-size: 14px; }
+.metric-value { color: #0f172a !important; font-size: 25px; font-weight: 800; }
 [data-testid="stDataFrame"] {
     border-radius: 18px;
     overflow: hidden;
-    border: 1px solid #35506f;
+    border: 1px solid #e2e8f0;
 }
 .login-wrap { max-width: 460px; margin: 7vh auto 0 auto; }
 .login-logo {
@@ -92,16 +120,17 @@ h1, h2, h3, h4, h5, h6, label, p, span { color: #f1f5f9 !important; }
     border-radius: 22px; display: flex; align-items: center;
     justify-content: center; font-size: 34px;
     background: linear-gradient(135deg, #C8A951, #ead58f);
+    box-shadow: 0 10px 24px rgba(200,169,81,.35);
 }
-.login-title { text-align: center; font-size: 30px; font-weight: 800; color: white !important; }
-.login-subtitle { text-align: center; color: #b6c2d1 !important; margin-bottom: 28px; }
+.login-title { text-align: center; font-size: 30px; font-weight: 800; color: #0f172a !important; }
+.login-subtitle { text-align: center; color: #64748b !important; margin-bottom: 28px; }
 .user-card {
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.10);
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
     border-radius: 16px; padding: 14px; margin: 10px 0 18px 0;
 }
-.user-name { font-weight: 800; color: white !important; }
-.user-role { font-size: 12px; color: #cbd5e1 !important; }
+.user-name { font-weight: 800; color: #0f172a !important; }
+.user-role { font-size: 12px; color: #64748b !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -380,7 +409,16 @@ def get_latest_snapshot(df: pd.DataFrame) -> pd.DataFrame:
     Fungsi ini mengambil SATU baris per kegiatan (Unit+MAK), yaitu entri
     dari bulan PALING AKHIR yang tersedia pada rentang data/filter yang
     dipilih, supaya total Pagu maupun Realisasi mencerminkan kondisi
-    terkini kegiatan tersebut, bukan hasil penjumlahan berulang."""
+    terkini kegiatan tersebut, bukan hasil penjumlahan berulang.
+
+    Baris dengan Pagu = 0 dianggap "belum diisi" (mis. bulan yang memang
+    belum sempat di-upload/masih placeholder kosong pada template),
+    BUKAN snapshot sungguhan. Kalau bulan terakhir yang ADA di data
+    ternyata masih 0, itu tidak boleh menimpa data valid dari bulan
+    sebelumnya -- jadi snapshot diambil dari bulan paling akhir yang
+    Pagu-nya sudah benar-benar diisi (> 0). Kalau suatu kegiatan memang
+    belum pernah diisi sama sekali, baru dipakai baris terakhirnya
+    apa adanya (termasuk yang masih 0)."""
     if df.empty:
         return pd.DataFrame(columns=["Unit", "MAK", "Kegiatan", "Tanggal", "Pagu", "Realisasi"])
 
@@ -389,9 +427,19 @@ def get_latest_snapshot(df: pd.DataFrame) -> pd.DataFrame:
         lambda x: BULAN_LIST.index(x) if x in BULAN_LIST else -1
     )
     temp = temp.sort_values("Urutan Bulan")
+
+    filled = temp[temp["Pagu"] > 0]
+    filled_latest = filled.drop_duplicates(subset=["Unit", "MAK"], keep="last")
+
+    all_latest = temp.drop_duplicates(subset=["Unit", "MAK"], keep="last")
+    filled_keys = set(zip(filled_latest["Unit"], filled_latest["MAK"]))
+    missing_latest = all_latest[
+        ~all_latest.apply(lambda row: (row["Unit"], row["MAK"]) in filled_keys, axis=1)
+    ]
+
+    result = pd.concat([filled_latest, missing_latest], ignore_index=True)
     return (
-        temp.drop_duplicates(subset=["Unit", "MAK"], keep="last")
-        [["Unit", "MAK", "Kegiatan", "Tanggal", "Pagu", "Realisasi"]]
+        result[["Unit", "MAK", "Kegiatan", "Tanggal", "Pagu", "Realisasi"]]
         .reset_index(drop=True)
     )
 
@@ -491,7 +539,7 @@ def show_login():
     st.markdown("""
     <div class="login-wrap">
         <div class="login-logo">🏛️</div>
-        <div class="login-title">Sistem Monitoring Anggaran</div>
+        <div class="login-title">Sistem Informasi Realisasi Anggaran (SIRA)</div>
         <div class="login-subtitle">Masuk untuk mengakses dashboard</div>
     </div>
     """, unsafe_allow_html=True)
@@ -542,7 +590,7 @@ if st.sidebar.button("Logout", use_container_width=True):
 
 st.markdown("""
 <div class="gov-header">
-    <h1>🏛️ Sistem Monitoring Anggaran</h1>
+    <h1>🏛️ Sistem Informasi Realisasi Anggaran (SIRA)</h1>
     <p>Monitoring Pagu, Realisasi, dan Sisa Anggaran</p>
 </div>
 """, unsafe_allow_html=True)
@@ -727,16 +775,27 @@ elif menu == "Lihat Semua Data":
         serapan = (total_realisasi / total_pagu * 100) if total_pagu > 0 else 0
 
         c1, c2, c3, c4 = st.columns(4)
+
+        # Kartu Serapan diberi warna dinamis: merah kalau masih rendah,
+        # kuning kalau sedang, hijau kalau sudah tinggi -- supaya sekilas
+        # kelihatan status serapannya tanpa perlu baca angka dulu.
+        if serapan < 40:
+            serapan_class = "metric-danger"
+        elif serapan < 75:
+            serapan_class = "metric-warning"
+        else:
+            serapan_class = "metric-good"
+
         metric_items = [
-            (c1, "Total Pagu", format_rupiah(total_pagu)),
-            (c2, "Total Realisasi", format_rupiah(total_realisasi)),
-            (c3, "Sisa Anggaran", format_rupiah(total_sisa)),
-            (c4, "Serapan Anggaran", f"{serapan:.2f}%".replace(".", ",")),
+            (c1, "Total Pagu", format_rupiah(total_pagu), ""),
+            (c2, "Total Realisasi", format_rupiah(total_realisasi), "metric-good"),
+            (c3, "Sisa Anggaran", format_rupiah(total_sisa), ""),
+            (c4, "Serapan Anggaran", f"{serapan:.2f}%".replace(".", ","), serapan_class),
         ]
-        for column, title, value in metric_items:
+        for column, title, value, extra_class in metric_items:
             with column:
                 st.markdown(f"""
-                <div class="metric-card">
+                <div class="metric-card {extra_class}">
                     <div class="metric-title">{title}</div>
                     <div class="metric-value">{value}</div>
                 </div>
@@ -1187,6 +1246,7 @@ elif menu == "Kelola Data":
         if st.button(
             "Hapus Data Terpilih",
             use_container_width=True,
+            type="primary",
             disabled=not selected_rows or not confirm_delete
         ):
             try:
