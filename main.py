@@ -727,6 +727,16 @@ def update_row(row_id, unit, tanggal, mak, kegiatan, pagu, realisasi):
     supabase.table(TABLE_NAME).update(payload).eq("id", int(row_id)).execute()
 
 
+def update_rows_bulk(df: pd.DataFrame):
+    """Simpan banyak perubahan sekaligus dalam SATU request ke Supabase
+    (bukan satu request per baris seperti update_row di atas). Jauh lebih
+    cepat kalau tabel yang diedit isinya puluhan/ratusan baris, karena
+    tidak perlu bolak-balik ke server untuk tiap baris satu per satu."""
+    records = df.rename(columns=DB_COLUMN_MAP)[["id"] + list(DB_COLUMN_MAP.values())].to_dict("records")
+    if records:
+        supabase.table(TABLE_NAME).upsert(records, on_conflict="id").execute()
+
+
 def delete_rows(ids):
     ids = [int(i) for i in ids]
     if ids:
@@ -1478,23 +1488,33 @@ elif menu == "Kelola Data":
             )
 
             if st.button("Simpan Perubahan", use_container_width=True):
-                edited_df = normalize_data(edited_df, keep_id=True)
-                errors = []
-                with st.spinner("Menyimpan perubahan ke Supabase..."):
-                    for _, row in edited_df.iterrows():
-                        try:
-                            update_row(
-                                row["id"], row["Unit"], row["Tanggal"], row["MAK"],
-                                row["Kegiatan"], row["Pagu"], row["Realisasi"]
-                            )
-                        except Exception as exc:
-                            errors.append(f"ID {row['id']}: {exc}")
+                edited_df_norm = normalize_data(edited_df, keep_id=True)
+                original_norm = normalize_data(editable_df, keep_id=True)
 
-                if errors:
-                    st.error("Sebagian data gagal disimpan:\n" + "\n".join(errors))
+                # Cuma kirim baris yang BENERAN berubah -- dibandingkan
+                # dengan data sebelum diedit, biar nggak nulis ulang baris
+                # yang isinya sama persis kayak sebelumnya.
+                compare_cols = ["Unit", "Tanggal", "MAK", "Kegiatan", "Pagu", "Realisasi"]
+                merged = edited_df_norm.merge(
+                    original_norm, on="id", suffixes=("_new", "_old")
+                )
+                changed_mask = (
+                    merged[[f"{c}_new" for c in compare_cols]].values
+                    != merged[[f"{c}_old" for c in compare_cols]].values
+                ).any(axis=1)
+                changed_ids = merged.loc[changed_mask, "id"].tolist()
+                rows_to_save = edited_df_norm[edited_df_norm["id"].isin(changed_ids)]
+
+                if rows_to_save.empty:
+                    st.info("Tidak ada perubahan yang perlu disimpan.")
                 else:
-                    st.success("Perubahan berhasil disimpan ke Supabase")
-                    st.rerun()
+                    try:
+                        with st.spinner(f"Menyimpan {len(rows_to_save)} baris yang berubah ke Supabase..."):
+                            update_rows_bulk(rows_to_save)
+                        st.success(f"{len(rows_to_save)} baris perubahan berhasil disimpan ke Supabase")
+                        st.rerun()
+                    except Exception as exc:
+                        st.error(f"Gagal menyimpan perubahan: {exc}")
 
         st.divider()
         st.subheader("Hapus Data")
