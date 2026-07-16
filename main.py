@@ -863,28 +863,39 @@ if menu == "Dashboard":
 elif menu == "Input Data":
     st.subheader("Input Data Anggaran")
 
-    with st.form("input_form", clear_on_submit=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            unit = st.selectbox("Unit", UNIT_LIST)
-            tanggal = st.selectbox("Tanggal (Bulan)", BULAN_LIST)
-            mak = st.text_input("MAK", placeholder="Contoh: 521211")
-            kegiatan = st.text_area("Kegiatan")
-        with col2:
-            pagu = st.number_input("Pagu (Rp)", min_value=0, step=1_000_000)
-            realisasi = st.number_input("Realisasi (Rp)", min_value=0, step=1_000_000)
-            sisa = pagu - realisasi
-            st.info(f"Sisa Anggaran: {format_rupiah(sisa)}")
+    # Reset kolom form setelah berhasil simpan (dilakukan SEBELUM widget
+    # dibuat, karena Streamlit tidak izinkan ubah session_state widget
+    # sesudah widget itu dirender di run yang sama).
+    if st.session_state.get("_reset_input_form"):
+        st.session_state["input_mak"] = ""
+        st.session_state["input_kegiatan"] = ""
+        st.session_state["input_pagu"] = 0
+        st.session_state["input_realisasi"] = 0
+        st.session_state["_reset_input_form"] = False
 
-        submitted = st.form_submit_button("Simpan Data", use_container_width=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        unit = st.selectbox("Unit", UNIT_LIST, key="input_unit")
+        tanggal = st.selectbox("Tanggal (Bulan)", BULAN_LIST, key="input_tanggal")
+        mak = st.text_input("MAK", placeholder="Contoh: 521211", key="input_mak")
+        kegiatan = st.text_area("Kegiatan", key="input_kegiatan")
+    with col2:
+        pagu = st.number_input("Pagu (Rp)", min_value=0, step=1_000_000, key="input_pagu")
+        st.caption(f"= {format_rupiah(pagu)}")
+        realisasi = st.number_input("Realisasi (Rp)", min_value=0, step=1_000_000, key="input_realisasi")
+        st.caption(f"= {format_rupiah(realisasi)}")
+        sisa = pagu - realisasi
+        st.info(f"Sisa Anggaran: {format_rupiah(sisa)}")
 
-    if submitted:
+    if st.button("Simpan Data", use_container_width=True):
         if not mak.strip() or not kegiatan.strip():
             st.error("MAK dan Kegiatan wajib diisi")
         else:
             try:
                 insert_row(unit, tanggal, mak.strip(), kegiatan.strip(), pagu, realisasi)
                 st.success("Data berhasil disimpan ke Supabase")
+                st.session_state["_reset_input_form"] = True
+                st.rerun()
             except Exception as exc:
                 st.error(f"Gagal menyimpan data: {exc}")
 
@@ -1445,6 +1456,12 @@ elif menu == "Kelola Data":
         st.warning("Belum ada data yang bisa dikelola")
     else:
         st.caption("Admin bisa mengubah data langsung di tabel, lalu klik Simpan Perubahan.")
+        st.caption(
+            "ℹ️ Kolom Pagu/Realisasi di tabel edit ini tampil tanpa titik ribuan "
+            "(mis. 100000000, bukan 100.000.000) -- ini keterbatasan komponen tabel edit "
+            "Streamlit, bukan kesalahan data. Nilainya tetap tersimpan dengan benar. Untuk "
+            "tampilan dengan format Rupiah lengkap, cek menu \"Lihat Semua Data\"."
+        )
 
         kelola_unit = st.selectbox(
             "Filter Unit (opsional)",
