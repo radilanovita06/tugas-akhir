@@ -1456,12 +1456,6 @@ elif menu == "Kelola Data":
         st.warning("Belum ada data yang bisa dikelola")
     else:
         st.caption("Admin bisa mengubah data langsung di tabel, lalu klik Simpan Perubahan.")
-        st.caption(
-            "ℹ️ Kolom Pagu/Realisasi di tabel edit ini tampil tanpa titik ribuan "
-            "(mis. 100000000, bukan 100.000.000) -- ini keterbatasan komponen tabel edit "
-            "Streamlit, bukan kesalahan data. Nilainya tetap tersimpan dengan benar. Untuk "
-            "tampilan dengan format Rupiah lengkap, cek menu \"Lihat Semua Data\"."
-        )
 
         kelola_unit = st.selectbox(
             "Filter Unit (opsional)",
@@ -1482,6 +1476,33 @@ elif menu == "Kelola Data":
             # untuk mencocokkan baris mana yang diubah di Supabase.
             editable_df = editable_df.reset_index(drop=True)
             editable_df["No"] = range(1, len(editable_df) + 1)
+
+            # Kartu ringkasan (format Rupiah lengkap, kayak di Dashboard)
+            # supaya ada gambaran totalnya sebelum/sesudah ngedit angka
+            # mentah di tabel bawah ini.
+            total_pagu_edit = editable_df["Pagu"].sum()
+            total_realisasi_edit = editable_df["Realisasi"].sum()
+            total_sisa_edit = editable_df["Sisa Anggaran"].sum()
+
+            rc1, rc2, rc3 = st.columns(3)
+            ringkasan_items = [
+                (rc1, "Total Pagu (baris yang tampil)", format_rupiah(total_pagu_edit), ""),
+                (rc2, "Total Realisasi (baris yang tampil)", format_rupiah(total_realisasi_edit), "metric-good"),
+                (rc3, "Sisa Anggaran (baris yang tampil)", format_rupiah(total_sisa_edit), ""),
+            ]
+            for column, title, value, extra_class in ringkasan_items:
+                with column:
+                    st.markdown(f"""
+                    <div class="metric-card {extra_class}">
+                        <div class="metric-title">{title}</div>
+                        <div class="metric-value">{value}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+            st.caption(
+                "Ringkasan di atas otomatis mengikuti baris yang sedang tampil di tabel bawah "
+                "ini (sesuai Filter Unit) -- akan ikut berubah kalau kamu ubah angka di tabel, "
+                "setelah klik Simpan Perubahan."
+            )
 
             edited_df = st.data_editor(
                 editable_df,
