@@ -1477,35 +1477,24 @@ elif menu == "Kelola Data":
             editable_df = editable_df.reset_index(drop=True)
             editable_df["No"] = range(1, len(editable_df) + 1)
 
-            # Kartu ringkasan (format Rupiah lengkap, kayak di Dashboard)
-            # supaya ada gambaran totalnya sebelum/sesudah ngedit angka
-            # mentah di tabel bawah ini.
-            total_pagu_edit = editable_df["Pagu"].sum()
-            total_realisasi_edit = editable_df["Realisasi"].sum()
-            total_sisa_edit = editable_df["Sisa Anggaran"].sum()
-
-            rc1, rc2, rc3 = st.columns(3)
-            ringkasan_items = [
-                (rc1, "Total Pagu (baris yang tampil)", format_rupiah(total_pagu_edit), ""),
-                (rc2, "Total Realisasi (baris yang tampil)", format_rupiah(total_realisasi_edit), "metric-good"),
-                (rc3, "Sisa Anggaran (baris yang tampil)", format_rupiah(total_sisa_edit), ""),
-            ]
-            for column, title, value, extra_class in ringkasan_items:
-                with column:
-                    st.markdown(f"""
-                    <div class="metric-card {extra_class}">
-                        <div class="metric-title">{title}</div>
-                        <div class="metric-value">{value}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-            st.caption(
-                "Ringkasan di atas otomatis mengikuti baris yang sedang tampil di tabel bawah "
-                "ini (sesuai Filter Unit) -- akan ikut berubah kalau kamu ubah angka di tabel, "
-                "setelah klik Simpan Perubahan."
+            # Celah biar tetap ada titik ribuan pas ngedit: Pagu/Realisasi
+            # ditampilkan sebagai kolom TEKS berformat ("100.000.000"),
+            # bukan kolom angka murni (yang menurut keterbatasan Streamlit
+            # tidak bisa diformat titik ribuan). Saat disimpan, titiknya
+            # dibuang lagi lewat clean_money() supaya kembali jadi angka.
+            display_edit_df = editable_df.copy()
+            display_edit_df["Pagu"] = display_edit_df["Pagu"].apply(
+                lambda v: f"{float(v):,.0f}".replace(",", ".")
+            )
+            display_edit_df["Realisasi"] = display_edit_df["Realisasi"].apply(
+                lambda v: f"{float(v):,.0f}".replace(",", ".")
+            )
+            display_edit_df["Sisa Anggaran"] = display_edit_df["Sisa Anggaran"].apply(
+                lambda v: f"{float(v):,.0f}".replace(",", ".")
             )
 
             edited_df = st.data_editor(
-                editable_df,
+                display_edit_df,
                 use_container_width=True,
                 hide_index=True,
                 num_rows="fixed",
@@ -1518,15 +1507,20 @@ elif menu == "Kelola Data":
                     "No": st.column_config.NumberColumn("No"),
                     "MAK": st.column_config.TextColumn("MAK", required=True),
                     "Kegiatan": st.column_config.TextColumn("Kegiatan", required=True),
-                    "Pagu": st.column_config.NumberColumn("Pagu", min_value=0, format="Rp %.0f"),
-                    "Realisasi": st.column_config.NumberColumn("Realisasi", min_value=0, format="Rp %.0f"),
-                    "Sisa Anggaran": st.column_config.NumberColumn("Sisa Anggaran", format="Rp %.0f"),
+                    "Pagu": st.column_config.TextColumn("Pagu (Rp)"),
+                    "Realisasi": st.column_config.TextColumn("Realisasi (Rp)"),
+                    "Sisa Anggaran": st.column_config.TextColumn("Sisa Anggaran (Rp)"),
                 },
                 key="admin_editor"
             )
 
             if st.button("Simpan Perubahan", use_container_width=True):
-                edited_df_norm = normalize_data(edited_df, keep_id=True)
+                # Parse ulang kolom Pagu/Realisasi dari teks berformat titik
+                # ("100.000.000") balik jadi angka sebelum dibandingkan/disimpan.
+                edited_df_parsed = edited_df.copy()
+                edited_df_parsed["Pagu"] = edited_df_parsed["Pagu"].apply(clean_money)
+                edited_df_parsed["Realisasi"] = edited_df_parsed["Realisasi"].apply(clean_money)
+                edited_df_norm = normalize_data(edited_df_parsed, keep_id=True)
                 original_norm = normalize_data(editable_df, keep_id=True)
 
                 # Cuma kirim baris yang BENERAN berubah -- dibandingkan
